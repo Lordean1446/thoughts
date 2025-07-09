@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})  // Remover depois!!! Erro fudido de serialização.
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 
 
 public class Thought {
@@ -30,7 +30,7 @@ public class Thought {
 
     private LocalDateTime createdAt;
 
-    @ManyToOne(fetch = FetchType.LAZY) // MUDAR DEPOIS PARA LAZY!! EAGER para evitar problemas de serialização
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 

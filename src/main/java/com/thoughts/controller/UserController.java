@@ -1,65 +1,89 @@
 package com.thoughts.controller;
+
+import com.thoughts.model.dto.UserResponseDTO;
 import com.thoughts.model.entity.User;
-import com.thoughts.service.UserService;
+import com.thoughts.repository.UserRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import jakarta.validation.Valid;
+
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
 
-    private final UserService userService;
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+    private ModelMapper modelMapper;
 
-    @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@RequestBody User user) {
-        try {
-            User registeredUser = userService.registerUser(user);
-
-            return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
-        } catch (RuntimeException e) {
-
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-        }
-    }
-
+    // Endpoint para listar todos os usuários
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.findAllUsers();
-        return new ResponseEntity<>(users, HttpStatus.OK);
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        List<UserResponseDTO> userDTOs = users.stream()
+                .map(user -> modelMapper.map(user, UserResponseDTO.class))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(userDTOs);
     }
 
+    // Endpoint para registrar um novo usuário (POST)
+    @PostMapping("/register")
+    public ResponseEntity<UserResponseDTO> registerUser(@Valid @RequestBody User user) {
+        User savedUser = userRepository.save(user);
+        UserResponseDTO userDTO = modelMapper.map(savedUser, UserResponseDTO.class);
+        return new ResponseEntity<>(userDTO, HttpStatus.CREATED);
+    }
+
+    // Endpoint para obter um usuário por ID
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        return userService.findUserById(id)
-                .map(user -> new ResponseEntity<>(user, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
-        try {
-            User updatedUser = userService.updateUser(id, userDetails);
-            return new ResponseEntity<>(updatedUser, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
+        Optional<User> userOptional = userRepository.findById(id);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            UserResponseDTO userDTO = modelMapper.map(user, UserResponseDTO.class);
+            return ResponseEntity.ok(userDTO);
+        } else {
+            // Lança uma exceção que o Spring Boot converte para 404 Not Found
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id);
         }
     }
 
+    // Endpoint para atualizar um usuário (PUT)
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @Valid @RequestBody User userDetails) {
+        Optional<User> userOptional = userRepository.findById(id);
+        if (userOptional.isPresent()) {
+            User existingUser = userOptional.get();
+            existingUser.setUsername(userDetails.getUsername());
+            existingUser.setEmail(userDetails.getEmail());
+            existingUser.setPassword(userDetails.getPassword()); // Apenas para exemplo, ajustar em prod.
+
+            User updatedUser = userRepository.save(existingUser);
+            UserResponseDTO userDTO = modelMapper.map(updatedUser, UserResponseDTO.class);
+            return ResponseEntity.ok(userDTO);
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id);
+        }
+    }
+
+    // Endpoint para deletar um usuário
     @DeleteMapping("/{id}")
-    public ResponseEntity<HttpStatus> deleteUser(@PathVariable Long id) {
-        try {
-            userService.deleteUser(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        if (userRepository.existsById(id)) {
+            userRepository.deleteById(id);
+            return ResponseEntity.noContent().build(); // 204 No Content para deleção bem-sucedida
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id);
         }
     }
 }

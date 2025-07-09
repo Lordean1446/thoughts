@@ -2,7 +2,9 @@ package com.thoughts.controller;
 
 import com.thoughts.model.dto.ThoughtResponseDTO;
 import com.thoughts.model.entity.Thought;
+import com.thoughts.model.entity.User;
 import com.thoughts.repository.ThoughtRepository;
+import com.thoughts.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +24,9 @@ public class ThoughtController {
 
     @Autowired
     private ThoughtRepository thoughtRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -37,7 +43,13 @@ public class ThoughtController {
     // Endpoint para criar um novo pensamento
     @PostMapping("/{userId}")
     public ResponseEntity<ThoughtResponseDTO> createThought(@PathVariable Long userId, @Valid @RequestBody Thought thought) {
+        // Encontrar o usuário pelo userId da URL
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "User not found with id: " + userId));
+        thought.setUser(user);
         Thought savedThought = thoughtRepository.save(thought);
+
         ThoughtResponseDTO thoughtDTO = modelMapper.map(savedThought, ThoughtResponseDTO.class);
         return new ResponseEntity<>(thoughtDTO, HttpStatus.CREATED);
     }
