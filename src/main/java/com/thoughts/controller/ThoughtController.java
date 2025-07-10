@@ -3,6 +3,7 @@ package com.thoughts.controller;
 import com.thoughts.model.dto.ThoughtResponseDTO;
 import com.thoughts.model.entity.Thought;
 import com.thoughts.model.entity.User;
+import com.thoughts.model.request.ThoughtRequestDTO;
 import com.thoughts.repository.ThoughtRepository;
 import com.thoughts.repository.UserRepository;
 import org.modelmapper.ModelMapper;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/thoughts")
+
 public class ThoughtController {
 
     @Autowired
@@ -42,16 +44,15 @@ public class ThoughtController {
 
     // Endpoint para criar um novo pensamento
     @PostMapping("/{userId}")
-    public ResponseEntity<ThoughtResponseDTO> createThought(@PathVariable Long userId, @Valid @RequestBody Thought thought) {
-        // Encontrar o usuário pelo userId da URL
+    public ResponseEntity<ThoughtResponseDTO> createThought(@PathVariable Long userId, @Valid @RequestBody ThoughtRequestDTO thoughtRequestDTO) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "User not found with id: " + userId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + userId));
+
+        Thought thought = modelMapper.map(thoughtRequestDTO, Thought.class);
         thought.setUser(user);
         Thought savedThought = thoughtRepository.save(thought);
-
         ThoughtResponseDTO thoughtDTO = modelMapper.map(savedThought, ThoughtResponseDTO.class);
-        return new ResponseEntity<>(thoughtDTO, HttpStatus.CREATED);
+        return new ResponseEntity<>(thoughtDTO, HttpStatus.CREATED); // Retorna 201 Created
     }
 
 
@@ -81,16 +82,16 @@ public class ThoughtController {
 
     // Endpoint para atualizar um pensamento
     @PutMapping("/{id}")
-    public ResponseEntity<ThoughtResponseDTO> updateThought(@PathVariable Long id, @Valid @RequestBody Thought thoughtDetails) {
+    public ResponseEntity<ThoughtResponseDTO> updateThought(@PathVariable Long id, @Valid @RequestBody ThoughtRequestDTO thoughtDetailsDTO) {
         Optional<Thought> thoughtOptional = thoughtRepository.findById(id);
         if (thoughtOptional.isPresent()) {
             Thought existingThought = thoughtOptional.get();
-            existingThought.setContent(thoughtDetails.getContent());
+            modelMapper.map(thoughtDetailsDTO, existingThought);
             Thought updatedThought = thoughtRepository.save(existingThought);
             ThoughtResponseDTO thoughtDTO = modelMapper.map(updatedThought, ThoughtResponseDTO.class);
             return ResponseEntity.ok(thoughtDTO);
         } else {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.notFound().build(); // Retorna 404 Not Found se o pensamento não existir
         }
     }
 }
