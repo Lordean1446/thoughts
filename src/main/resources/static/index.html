@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thoughts App - Integrado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6', // Azul do Tailwind
+                        secondary: '#6b7280', // Cinza médio
+                        background: '#f3f4f6', // Cinza claro para o fundo
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background min-h-screen">
+<header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-800">Thoughts App</h1>
+    <div class="flex items-center space-x-4">
+        <span class="text-gray-700 font-medium">Bem-vindo, Usuário Teste!</span>
+        <button class="bg-primary hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition duration-300">
+            Sair
+        </button>
+    </div>
+</header>
+
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">O que você está pensando?</h2>
+        <textarea
+                id="thoughtContent"
+                class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-700"
+                rows="4"
+                placeholder="Compartilhe seus pensamentos aqui..."
+        ></textarea>
+        <button id="publishThoughtBtn" class="mt-4 bg-primary hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition duration-300">
+            Publicar Pensamento
+        </button>
+        <p id="messageArea" class="mt-2 text-sm text-center"></p>
+    </div>
+
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Meus Pensamentos Recentes</h2>
+        <div id="thoughts-list">
+            <p class="text-gray-600">Carregando pensamentos...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Configurações ---
+    const API_BASE_URL = 'http://localhost:8080/api';
+    const FAKE_USER_ID = 1; // ALtere este ID para um ID de usuário REAL que exista no seu banco de dados para testes!
+
+    // --- Elementos do DOM ---
+    const thoughtsListDiv = document.getElementById('thoughts-list');
+    const thoughtContentInput = document.getElementById('thoughtContent');
+    const publishThoughtBtn = document.getElementById('publishThoughtBtn');
+    const messageArea = document.getElementById('messageArea');
+
+    // --- Funções Auxiliares ---
+    function displayMessage(message, type = 'success') {
+        messageArea.textContent = message;
+        messageArea.className = 'mt-2 text-sm text-center'; // Reset classes
+        if (type === 'success') {
+            messageArea.classList.add('text-green-600');
+        } else if (type === 'error') {
+            messageArea.classList.add('text-red-600');
+        } else {
+            messageArea.classList.add('text-gray-600'); // Default
+        }
+    }
+
+    function createThoughtCard(thought) {
+        const thoughtDiv = document.createElement('div');
+        thoughtDiv.classList.add('mb-4', 'p-4', 'bg-white', 'rounded-md', 'border', 'border-gray-200');
+
+        const contentPara = document.createElement('p');
+        contentPara.classList.add('text-gray-800', 'mb-2', 'text-lg');
+        contentPara.textContent = thought.content;
+
+        const authorPara = document.createElement('p');
+        authorPara.classList.add('text-gray-500', 'text-sm');
+        if (thought.user && thought.user.username) {
+            authorPara.textContent = `Autor: ${thought.user.username}`;
+        } else {
+            authorPara.textContent = 'Autor: Desconhecido';
+        }
+
+        // Opcional: Adicionar data de criação formatada
+        if (thought.createdAt) {
+            const date = new Date(thought.createdAt);
+            authorPara.textContent += ` - Publicado em ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+        }
+
+        thoughtDiv.appendChild(contentPara);
+        thoughtDiv.appendChild(authorPara);
+        return thoughtDiv;
+    }
+
+    // --- Função para Carregar Pensamentos ---
+    async function loadThoughts() {
+        thoughtsListDiv.innerHTML = '<p class="text-gray-600">Carregando pensamentos...</p>';
+        try {
+            const response = await fetch(`${API_BASE_URL}/thoughts`);
+            if (!response.ok) {
+                throw new Error('Erro ao carregar os pensamentos da API: ' + response.statusText);
+            }
+            const thoughts = await response.json();
+
+            thoughtsListDiv.innerHTML = ''; // Limpa a mensagem de carregamento
+
+            if (thoughts.length === 0) {
+                thoughtsListDiv.innerHTML = '<p class="text-gray-500">Nenhum pensamento encontrado.</p>';
+                return;
+            }
+
+            // Inverte a ordem para mostrar os mais recentes primeiro
+            thoughts.reverse().forEach(thought => {
+                thoughtsListDiv.appendChild(createThoughtCard(thought));
+            });
+
+        } catch (error) {
+            thoughtsListDiv.innerHTML = `<p class="text-red-500">Erro ao carregar pensamentos: ${error.message}</p>`;
+            console.error('Erro ao carregar pensamentos:', error);
+        }
+    }
+
+    // --- Função para Publicar um Novo Pensamento ---
+    async function publishThought() {
+        const content = thoughtContentInput.value.trim();
+        if (!content) {
+            displayMessage('Por favor, digite seu pensamento.', 'error');
+            return;
+        }
+
+        displayMessage('Publicando...', 'info');
+        try {
+            const response = await fetch(`${API_BASE_URL}/thoughts/${FAKE_USER_ID}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content: content })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: response.statusText }));
+                throw new Error(`Falha ao publicar: ${errorData.message || response.statusText}`);
+            }
+
+            const newThought = await response.json();
+            displayMessage('Pensamento publicado com sucesso!', 'success');
+            thoughtContentInput.value = ''; // Limpa o campo
+            loadThoughts(); // Recarrega a lista para mostrar o novo pensamento
+
+        } catch (error) {
+            displayMessage(`Erro ao publicar pensamento: ${error.message}`, 'error');
+            console.error('Erro ao publicar pensamento:', error);
+        }
+    }
+
+    // --- Event Listeners ---
+    document.addEventListener('DOMContentLoaded', loadThoughts); // Carrega pensamentos ao carregar a página
+    publishThoughtBtn.addEventListener('click', publishThought); // Adiciona evento ao botão de publicar
+</script>
+</body>
+</html>
