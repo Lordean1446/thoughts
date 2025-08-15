@@ -7,7 +7,6 @@ import com.thoughts.model.request.ThoughtRequestDTO;
 import com.thoughts.repository.ThoughtRepository;
 import com.thoughts.repository.UserRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,14 +23,15 @@ import java.util.stream.Collectors;
 
 public class ThoughtController {
 
-    @Autowired
-    private ThoughtRepository thoughtRepository;
+    private final ThoughtRepository thoughtRepository;
+    private final UserRepository userRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public ThoughtController(ThoughtRepository thoughtRepository, UserRepository userRepository, ModelMapper modelMapper) {
+        this.thoughtRepository = thoughtRepository;
+        this.userRepository = userRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @GetMapping
     public ResponseEntity<List<ThoughtResponseDTO>> getAllThoughts() {

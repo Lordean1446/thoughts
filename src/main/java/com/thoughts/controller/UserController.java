@@ -5,7 +5,6 @@ import com.thoughts.model.entity.User;
 import com.thoughts.model.request.UserRequestDTO;
 import com.thoughts.repository.UserRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,11 +20,13 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/users")
 public class UserController {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public UserController(UserRepository userRepository, ModelMapper modelMapper) {
+        this.userRepository = userRepository;
+        this.modelMapper = modelMapper;
+    }
 
     // Endpoint para listar todos os usuários
     @GetMapping
