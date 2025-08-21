@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.thoughts</groupId>
     <artifactId>thoughts</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>thoughts</name>
     <description>Share your thoughts</description>
     <properties>
