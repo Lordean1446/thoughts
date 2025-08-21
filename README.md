@@ -100,7 +100,16 @@ ou
 - Ainda há espaço para melhorias, como autenticação com Spring Security e testes automatizados.
 - Fique à vontade para sugerir melhorias ou contribuir!
 
+## Observação sobre o Front-end
+
+O arquivo `index.html` do front-end está configurado para usar um usuário de teste com:
+
+```js
+const FAKE_USER_ID = 1;
+```
+
+Portanto, para testar as funcionalidades, crie primeiro um usuário (por exemplo, via Postman ou Swagger) e utilize o ID 1 para experimentar o cadastro e listagem de pensamentos. Caso o primeiro usuário criado tenha outro ID, ajuste o valor de `FAKE_USER_ID` no código do front-end conforme necessário.
+
 ## Licença
 
-MIT
-
+Este projeto está licenciado sob os termos da licença MIT. Veja o arquivo [LICENSE](./LICENSE) para mais detalhes.

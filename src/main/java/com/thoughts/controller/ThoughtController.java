@@ -1,5 +1,9 @@
 package com.thoughts.controller;
 
+import com.thoughts.exception.DuplicateEmailException;
+import com.thoughts.exception.DuplicateUserException;
+import com.thoughts.exception.ThoughtNotFoundException;
+import com.thoughts.exception.UserNotFoundException;
 import com.thoughts.model.dto.ThoughtResponseDTO;
 import com.thoughts.model.entity.Thought;
 import com.thoughts.model.entity.User;
@@ -46,8 +50,7 @@ public class ThoughtController {
     @PostMapping("/{userId}")
     public ResponseEntity<ThoughtResponseDTO> createThought(@PathVariable Long userId, @Valid @RequestBody ThoughtRequestDTO thoughtRequestDTO) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + userId));
-
+                .orElseThrow(UserNotFoundException::new);
         Thought thought = modelMapper.map(thoughtRequestDTO, Thought.class);
         thought.setUser(user);
         Thought savedThought = thoughtRepository.save(thought);
@@ -55,18 +58,13 @@ public class ThoughtController {
         return new ResponseEntity<>(thoughtDTO, HttpStatus.CREATED); // Retorna 201 Created
     }
 
-
     // Endpoint para obter um pensamento por ID
     @GetMapping("/{id}")
     public ResponseEntity<ThoughtResponseDTO> getThoughtById(@PathVariable Long id) {
-        Optional<Thought> thoughtOptional = thoughtRepository.findById(id);
-        if (thoughtOptional.isPresent()) {
-            Thought thought = thoughtOptional.get();
-            ThoughtResponseDTO thoughtDTO = modelMapper.map(thought, ThoughtResponseDTO.class);
-            return ResponseEntity.ok(thoughtDTO);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        Thought thought = thoughtRepository.findById(id)
+                .orElseThrow(ThoughtNotFoundException::new);
+        ThoughtResponseDTO thoughtDTO = modelMapper.map(thought, ThoughtResponseDTO.class);
+        return ResponseEntity.ok(thoughtDTO);
     }
 
     // Endpoint para deletar um pensamento por ID
@@ -76,22 +74,18 @@ public class ThoughtController {
             thoughtRepository.deleteById(id);
             return ResponseEntity.noContent().build(); // Status 204 No Content para deleção bem-sucedida
         } else {
-            return ResponseEntity.notFound().build(); // Status 404 Not Found se não existir
+            throw new ThoughtNotFoundException();
         }
     }
 
     // Endpoint para atualizar um pensamento
     @PutMapping("/{id}")
     public ResponseEntity<ThoughtResponseDTO> updateThought(@PathVariable Long id, @Valid @RequestBody ThoughtRequestDTO thoughtDetailsDTO) {
-        Optional<Thought> thoughtOptional = thoughtRepository.findById(id);
-        if (thoughtOptional.isPresent()) {
-            Thought existingThought = thoughtOptional.get();
-            modelMapper.map(thoughtDetailsDTO, existingThought);
-            Thought updatedThought = thoughtRepository.save(existingThought);
-            ThoughtResponseDTO thoughtDTO = modelMapper.map(updatedThought, ThoughtResponseDTO.class);
-            return ResponseEntity.ok(thoughtDTO);
-        } else {
-            return ResponseEntity.notFound().build(); // Retorna 404 Not Found se o pensamento não existir
-        }
+        Thought existingThought = thoughtRepository.findById(id)
+                .orElseThrow(ThoughtNotFoundException::new);
+        modelMapper.map(thoughtDetailsDTO, existingThought);
+        Thought updatedThought = thoughtRepository.save(existingThought);
+        ThoughtResponseDTO thoughtDTO = modelMapper.map(updatedThought, ThoughtResponseDTO.class);
+        return ResponseEntity.ok(thoughtDTO);
     }
 }

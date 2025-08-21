@@ -1,5 +1,8 @@
 package com.thoughts.controller;
 
+import com.thoughts.exception.DuplicateEmailException;
+import com.thoughts.exception.DuplicateUserException;
+import com.thoughts.exception.UserNotFoundException;
 import com.thoughts.model.dto.UserResponseDTO;
 import com.thoughts.model.entity.User;
 import com.thoughts.model.request.UserRequestDTO;
@@ -43,10 +46,10 @@ public class UserController {
     public ResponseEntity<UserResponseDTO> registerUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
         User user = modelMapper.map(userRequestDTO, User.class);
         if (userRepository.existsByUsername(user.getUsername())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already exists");
+            throw new DuplicateUserException();
         }
         if (userRepository.existsByEmail(user.getEmail())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already exists");
+            throw new DuplicateEmailException();
         }
         User savedUser = userRepository.save(user);
         UserResponseDTO userDTO = modelMapper.map(savedUser, UserResponseDTO.class);
@@ -62,8 +65,7 @@ public class UserController {
             UserResponseDTO userDTO = modelMapper.map(user, UserResponseDTO.class);
             return ResponseEntity.ok(userDTO);
         } else {
-            // Lança uma exceção que o Spring Boot converte para 404 Not Found
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id);
+            throw new UserNotFoundException();
         }
     }
 
@@ -74,21 +76,14 @@ public class UserController {
         Optional<User> userOptional = userRepository.findById(id);
         if (userOptional.isPresent()) {
             User existingUser = userOptional.get();
-            modelMapper.map(userDetailsDTO, existingUser); // Mapeia os detalhes do usuário para o usuário existente
-
-            // Descomente se quiser atualizar a senha
-            // if (userDetailsDTO.getPassword() != null && !userDetailsDTO.getPassword().isEmpty()) {
-            //     existingUser.setPassword(passwordEncoder.encode(userDetailsDTO.getPassword()));
-            // }
-
+            modelMapper.map(userDetailsDTO, existingUser);
             User updatedUser = userRepository.save(existingUser);
             UserResponseDTO userDTO = modelMapper.map(updatedUser, UserResponseDTO.class);
             return ResponseEntity.ok(userDTO);
         } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id);
+            throw new UserNotFoundException();
         }
     }
-
 
     // Endpoint para deletar um usuário
     @DeleteMapping("/{id}")
@@ -97,7 +92,7 @@ public class UserController {
             userRepository.deleteById(id);
             return ResponseEntity.noContent().build(); // 204 No Content para deleção bem-sucedida
         } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id);
+            throw new UserNotFoundException();
         }
     }
 }
