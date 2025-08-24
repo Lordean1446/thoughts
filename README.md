@@ -27,7 +27,7 @@ Este é um projeto de estudo e prática com Java e Spring Boot. A aplicação é
    - PostgreSQL rodando (ou use Docker)
 
 2. **Configuração:**  
-   - Edite o arquivo `src/main/resources/application.properties` com os dados do seu banco.
+   - Edite o arquivo `src/main/resources/application.yaml` com os dados do seu banco.
 
 3. **Rodando o projeto:**  
    ```bash
