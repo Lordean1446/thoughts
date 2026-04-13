@@ -1,11 +1,14 @@
 package com.lordean1446.thoughts.domain;
 
 import com.lordean1446.thoughts.dto.AuthorDTO;
+import com.lordean1446.thoughts.dto.ReactionDTO;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Document
 public class Post implements Serializable {
@@ -16,6 +19,8 @@ public class Post implements Serializable {
     private Date date;
     private String body;
     private AuthorDTO author;
+
+    private List<ReactionDTO> reactions = new ArrayList<>();
 
     public Post() {
     }
@@ -57,6 +62,14 @@ public class Post implements Serializable {
 
     public void setBody(String body) {
         this.body = body;
+    }
+
+    public List<ReactionDTO> getReactions() {
+        return reactions;
+    }
+
+    public void setReactions(List<ReactionDTO> reactions) {
+        this.reactions = reactions;
     }
 
     @Override
