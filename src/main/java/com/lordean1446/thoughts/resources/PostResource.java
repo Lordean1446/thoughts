@@ -2,13 +2,13 @@ package com.lordean1446.thoughts.resources;
 
 
 import com.lordean1446.thoughts.domain.Post;
+import com.lordean1446.thoughts.resources.util.URL;
 import com.lordean1446.thoughts.services.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/posts")
@@ -22,4 +22,12 @@ public class PostResource {
         Post obj = service.findById(id);
         return ResponseEntity.ok().body(obj);
     }
+
+    @GetMapping(value = "/contentsearch")
+    public ResponseEntity<List<Post>> findByBodyContaining(@RequestParam(value = "text", defaultValue = "") String text) {
+        text = URL.decodeParam(text);
+        List<Post> list = service.findByBodyContaining(text);
+        return ResponseEntity.ok().body(list);
+    }
+
 }
