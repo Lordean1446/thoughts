@@ -48,20 +48,15 @@ public class User implements Serializable {
     }
 
     @Override
-    public final boolean equals(Object o) {
-        if (!(o instanceof User user)) return false;
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
 
-        if (id == null) {
-            return user.id == null;
-        }
+        User user = (User) o;
         return id.equals(user.id);
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
-        return result;
+        return id.hashCode();
     }
 }
