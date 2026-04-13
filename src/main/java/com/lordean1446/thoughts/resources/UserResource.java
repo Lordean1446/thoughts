@@ -1,5 +1,6 @@
 package com.lordean1446.thoughts.resources;
 
+import com.lordean1446.thoughts.domain.Post;
 import com.lordean1446.thoughts.domain.User;
 import com.lordean1446.thoughts.dto.UserDTO;
 import com.lordean1446.thoughts.services.UserService;
@@ -53,4 +54,11 @@ public class UserResource {
         obj = service.update(obj);
         return ResponseEntity.ok().body(new UserDTO(obj));
     }
+
+    @GetMapping(value = "/{id}/posts")
+    public ResponseEntity<List<Post>> findPostsByUser(@PathVariable String id) {
+        User obj = service.findById(id);
+        return ResponseEntity.ok().body(obj.getPosts());
+    }
+
 }

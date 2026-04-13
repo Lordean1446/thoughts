@@ -14,13 +14,13 @@ public class Post implements Serializable {
     @Id
     private String id;
     private Date date;
-    private AuthorDTO author;
     private String body;
+    private AuthorDTO author;
 
     public Post() {
     }
 
-    public Post(String id, Date date, AuthorDTO author, String body) {
+    public Post(String id, Date date, String body, AuthorDTO author) {
         this.id = id;
         this.date = date;
         this.author = author;
