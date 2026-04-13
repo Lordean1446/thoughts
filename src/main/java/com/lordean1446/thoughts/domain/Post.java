@@ -1,5 +1,6 @@
 package com.lordean1446.thoughts.domain;
 
+import com.lordean1446.thoughts.dto.AuthorDTO;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -13,13 +14,13 @@ public class Post implements Serializable {
     @Id
     private String id;
     private Date date;
-    private User author;
+    private AuthorDTO author;
     private String body;
 
     public Post() {
     }
 
-    public Post(String id, Date date, User author, String body) {
+    public Post(String id, Date date, AuthorDTO author, String body) {
         this.id = id;
         this.date = date;
         this.author = author;
@@ -42,11 +43,11 @@ public class Post implements Serializable {
         this.date = date;
     }
 
-    public User getAuthor() {
+    public AuthorDTO getAuthor() {
         return author;
     }
 
-    public void setAuthor(User author) {
+    public void setAuthor(AuthorDTO author) {
         this.author = author;
     }
 
