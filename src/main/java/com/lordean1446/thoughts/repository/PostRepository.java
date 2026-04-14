@@ -9,5 +9,7 @@ import java.util.List;
 @Repository
 public interface PostRepository extends MongoRepository<Post, String> {
 
-    List<Post> findByBodyContainingIgnoreCase(String text);
+    List<Post> findByBodyContainingIgnoreCase(String text); //Search Posts
+    
+    List<Post> findAllByOrderByDateDesc(); // Show posts in correct order
 }

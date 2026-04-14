@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thoughts - Compartilhe seus pensamentos</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Thoughts</h1>
+            <p>Compartilhe seus pensamentos e reações com o mundo</p>
+        </header>
+
+        <main>
+            <section class="thought-form">
+                <h2>Compartilhe seu pensamento</h2>
+                <form id="thoughtForm">
+                    <div class="form-group">
+                        <textarea id="thoughtContent" name="thoughtContent" required placeholder="No que você está pensando?"></textarea>
+                    </div>
+                    <button type="submit" class="btn">Compartilhar pensamento</button>
+                </form>
+            </section>
+
+            <section class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Buscar pensamentos...">
+            </section>
+
+            <section class="thoughts-container">
+                <h2 style="color: white; margin-bottom: 20px;">Pensamentos recentes</h2>
+                <div id="thoughtsContainer">
+                    <div class="loading">Carregando pensamentos...</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
